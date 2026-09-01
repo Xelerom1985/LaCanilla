@@ -13,7 +13,7 @@ import Sedes from './components/Sedes'
 const PASS = '1883'
 
 const defaultData = {
-  proximoPartido: { rival: '', dia: '', cancha: '', mapsUrl: '' },
+  proximoPartido: { rival: '', dia: '', cancha: 'La Canilla', mapsUrl: '' },
 }
 
 function AppBackground({ fondoImagen }) {

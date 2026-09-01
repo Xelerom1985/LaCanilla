@@ -238,21 +238,13 @@ function CatStats({ fechas, catKey }) {
   )
 }
 
-function VistaStats({ fechas, catActiva, setCatActiva, onBack }) {
-  const titulo = 'PROXIMAMENTE'
-
+function VistaStats({ fechas, catActiva, setCatActiva }) {
   const cats = CATEGORIAS_ACTUALES
 
   return (
     <div className="flex flex-col">
       <div className="px-4 pt-10 pb-4" style={{ background: 'rgba(15,92,34,0.85)', backdropFilter: 'blur(8px)' }}>
-        <button onClick={onBack} className="flex items-center gap-2 text-white/60 text-sm mb-3">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          Estadísticas
-        </button>
-        <h2 className="text-white font-bold text-xl">{titulo}</h2>
+        <h2 className="text-white font-bold text-xl">Estadísticas</h2>
         <p className="text-white/50 text-sm">
           {catActiva === 'general' ? 'Estadísticas del club' : 'Seleccioná una categoría'}
         </p>
@@ -304,50 +296,8 @@ function VistaStats({ fechas, catActiva, setCatActiva, onBack }) {
 }
 
 export default function Plantel({ data }) {
-  const [vista, setVista] = useState('menu')
-  const [catActiva, setCatActiva] = useState(null)
+  const [catActiva, setCatActiva] = useState('general')
   const fechas = data?.fechas || {}
 
-  const countFechas = Object.values(fechas).filter(f => f.resultados).length
-
-  if (vista === 'stats') {
-    return (
-      <VistaStats
-        fechas={fechas}
-        catActiva={catActiva}
-        setCatActiva={setCatActiva}
-        onBack={() => { setVista('menu'); setCatActiva(null) }}
-      />
-    )
-  }
-
-  return (
-    <div className="flex flex-col">
-      <div className="px-4 pt-10 pb-6" style={{ background: 'rgba(15,92,34,0.85)', backdropFilter: 'blur(8px)' }}>
-        <h2 className="text-white font-bold text-xl">Estadísticas</h2>
-        <p className="text-white/50 text-sm">CSD La Canilla</p>
-      </div>
-
-      <div className="px-3 mt-5 flex flex-col gap-3">
-        <button onClick={() => { setVista('stats'); setCatActiva(null) }}
-          className="rounded-2xl border border-[#16a34a]/40 p-5 flex items-center justify-between text-left active:opacity-80 transition-opacity"
-          style={{ background: 'rgba(22,163,74,0.12)', backdropFilter: 'blur(12px)' }}>
-          <div className="flex items-center gap-3">
-            <div className="w-1.5 h-6 bg-[#16a34a] rounded-full" />
-            <div>
-              <h3 className="text-white font-bold text-base">PROXIMAMENTE</h3>
-              <p className="text-white/40 text-xs mt-0.5">
-                {countFechas > 0 ? `${countFechas} fechas cargadas` : 'Sin fechas cargadas todavía'}
-              </p>
-            </div>
-          </div>
-          <svg className="w-5 h-5 text-white/30 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      </div>
-
-      <div className="h-6" />
-    </div>
-  )
+  return <VistaStats fechas={fechas} catActiva={catActiva} setCatActiva={setCatActiva} />
 }

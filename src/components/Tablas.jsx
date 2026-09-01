@@ -144,19 +144,12 @@ export default function Tablas({ data }) {
   }, [zoom])
 
   const tablasImagenes = data.tablasImagenes || {}
-  const tablasUrls     = data.tablasUrls     || {}
   const tablasEquipos  = data.tablasEquipos  || {}
   const plantelFotos   = data.plantelFotos   || {}
   const jugadoresDB    = data.jugadores      || {}
   const labelActiva    = CATEGORIAS.find(c => c.key === catActiva)?.label
 
-  const esUrlWeb        = (v) => typeof v === 'string' && v.startsWith('http')
-  const esImagenDirecta = (v) => esUrlWeb(v) && /\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i.test(v)
-
-  const imgVal       = tablasImagenes[catActiva]
-  const urlActiva    = tablasUrls[catActiva]
-    || (esUrlWeb(imgVal) && !esImagenDirecta(imgVal) ? imgVal : null)
-  const imagenTabla  = (imgVal && (!esUrlWeb(imgVal) || esImagenDirecta(imgVal))) ? imgVal : null
+  const imagenTabla  = tablasImagenes[catActiva] || null
   const imagenEquipo = tablasEquipos[catActiva] || null
 
   return (
@@ -190,7 +183,7 @@ export default function Tablas({ data }) {
 
       {/* Contenido tabla */}
       <div className="px-3 mt-3 flex flex-col gap-3">
-        {!urlActiva && !imagenTabla && !imagenEquipo ? (
+        {!imagenTabla && !imagenEquipo ? (
           <div className="rounded-2xl border border-dashed border-white/10 flex flex-col items-center justify-center py-12 gap-3"
             style={{ background: 'rgba(7,26,13,0.6)' }}>
             <svg className="w-10 h-10 text-white/15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -201,26 +194,6 @@ export default function Tablas({ data }) {
           </div>
         ) : (
           <>
-            {urlActiva && (
-              <a href={urlActiva} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-4 rounded-2xl border border-white/10 px-5 py-4 active:opacity-80 transition-opacity"
-                style={{ background: 'rgba(7,26,13,0.82)', backdropFilter: 'blur(10px)' }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ background: 'rgba(22,163,74,0.25)', border: '1px solid rgba(22,163,74,0.4)' }}>
-                  <svg className="w-5 h-5" style={{ color: '#16a34a' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                      d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9" />
-                  </svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-white font-semibold text-sm">Ver {labelActiva}</p>
-                  <p className="text-white/35 text-xs mt-0.5">Abre en el navegador</p>
-                </div>
-                <svg className="w-4 h-4 text-white/30 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </a>
-            )}
             {imagenTabla && (
               <div>
                 <p className="text-white/20 text-[10px] uppercase tracking-widest text-center mb-2">Tabla de posiciones</p>

@@ -62,7 +62,6 @@ export default function Admin({ data, onSalir }) {
   const [banner, setBanner]       = useState({ ...data.proximoPartido })
   const [saving, setSaving]       = useState(false)
   const [savingBanner, setSavingBanner] = useState(false)
-  const [savingTabla, setSavingTabla]   = useState(false)
   const [savedMsg, setSavedMsg]   = useState('')
   const [fechas, setFechas]       = useState(data.fechas || {})
   const [fechaActiva, setFechaActiva] = useState(null)
@@ -77,8 +76,6 @@ export default function Admin({ data, onSalir }) {
   const fondoFileRef = useRef(null)
   const [tablasCat, setTablasCat]       = useState('general')
   const [imagenesUrl, setImagenesUrl]   = useState(data.tablasImagenes || {})
-  const [urlsTabla, setUrlsTabla]       = useState(data.tablasUrls || {})
-  const [urlTablaInput, setUrlTablaInput] = useState(data.tablasUrls?.general || '')
   const [uploadingImg, setUploadingImg] = useState(false)
   const [encuestaActiva, setEncuestaActiva] = useState(data.encuesta?.activa === true)
   // Novedades
@@ -148,9 +145,6 @@ export default function Admin({ data, onSalir }) {
   const [uploadingPlantelFoto, setUploadingPlantelFoto] = useState(false)
   const plantelFotoRef = useRef(null)
 
-  useEffect(() => {
-    setUrlTablaInput(urlsTabla[tablasCat] || '')
-  }, [tablasCat, urlsTabla])
   const fileRef = useRef(null)
   const showSavedTimerRef = useRef(null)
   const [resultadosForm, setResultadosForm] = useState({})
@@ -212,22 +206,6 @@ export default function Admin({ data, onSalir }) {
       setBannerImagen(null)
       showSaved()
     } catch { alert('Error al eliminar la foto.') }
-  }
-
-  const saveUrlTabla = async () => {
-    const url = urlTablaInput.trim()
-    setSavingTabla(true)
-    try {
-      if (url) {
-        await set(ref(db, `tablasUrls/${tablasCat}`), url)
-        setUrlsTabla(prev => ({ ...prev, [tablasCat]: url }))
-      } else {
-        await set(ref(db, `tablasUrls/${tablasCat}`), null)
-        setUrlsTabla(prev => { const n = { ...prev }; delete n[tablasCat]; return n })
-      }
-      showSaved()
-    } catch { alert('Error al guardar la URL.') }
-    setSavingTabla(false)
   }
 
   const uploadImagen = async (file) => {
@@ -483,7 +461,7 @@ export default function Admin({ data, onSalir }) {
               <label className="text-gray-500 text-xs mb-1 block">Cancha</label>
               <input type="text" value={banner.cancha || ''}
                 onChange={e => setBanner(b => ({ ...b, cancha: e.target.value }))}
-                placeholder="Estadio 21 de Septiembre"
+                placeholder="La Canilla"
                 className="w-full bg-[#2a2a2a] border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#16a34a]" />
             </div>
             <div>
@@ -742,10 +720,10 @@ export default function Admin({ data, onSalir }) {
           <p className="text-gray-500 text-xs uppercase tracking-widest">Contenido por categoría</p>
 
           {/* Selector */}
-          <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+          <div className="grid grid-cols-3 gap-2">
             {CATEGORIAS.map(cat => (
               <button key={cat.key} onClick={() => setTablasCat(cat.key)}
-                className="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+                className={`px-2 py-2 rounded-xl text-xs font-semibold transition-all text-center${cat.key === 'general' ? ' col-span-3' : ''}`}
                 style={{
                   background: tablasCat === cat.key ? '#16a34a' : '#1e1e1e',
                   border: tablasCat === cat.key ? '1px solid #16a34a' : '1px solid rgba(255,255,255,0.08)',
@@ -754,28 +732,6 @@ export default function Admin({ data, onSalir }) {
                 {cat.label}
               </button>
             ))}
-          </div>
-
-          {/* URL externa */}
-          <div className="bg-[#1e1e1e] rounded-2xl border border-white/5 p-4 flex flex-col gap-3">
-            <div>
-              <p className="text-white/70 text-sm font-semibold">Enlace externo</p>
-              <p className="text-white/25 text-xs mt-0.5">Se muestra como botón "Ver tabla" para abrir en el navegador</p>
-            </div>
-            <input
-              type="url"
-              value={urlTablaInput}
-              onChange={e => setUrlTablaInput(e.target.value)}
-              placeholder="https://..."
-              className="w-full bg-[#2a2a2a] border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-[#16a34a]"
-            />
-            <button onClick={saveUrlTabla} disabled={savingTabla}
-              className="w-full bg-[#16a34a] active:bg-[#0f7a37] disabled:opacity-50 text-white font-bold rounded-xl py-3 text-sm transition-colors">
-              {savingTabla ? 'Guardando...' : 'Guardar enlace'}
-            </button>
-            {urlsTabla[tablasCat] && (
-              <p className="text-white/25 text-xs break-all">Guardado: {urlsTabla[tablasCat]}</p>
-            )}
           </div>
 
           {/* Imagen de Tabla */}
