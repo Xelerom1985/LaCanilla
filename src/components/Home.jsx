@@ -199,21 +199,8 @@ const formatDia = (dia) => {
   return dia
 }
 
-const CATS_LIVE = [
-  { key: 'reservaFem',  label: 'Reserva Femenino' },
-  { key: 'reservaMasc', label: 'Reserva Masculino' },
-  { key: '5ta',         label: '5ta División' },
-  { key: '4ta',         label: '4ta División' },
-  { key: '6ta',         label: '6ta División' },
-  { key: 'mas33',       label: 'Seniors +33' },
-  { key: 'fem1ra',      label: '1ra Femenino' },
-  { key: '3ra',         label: '3ra División' },
-  { key: 'mas40',       label: 'Seniors +40' },
-  { key: '1ra',         label: '1ra División' },
-]
-
 export default function Home({ data }) {
-  const { proximoPartido, bannerImagen, categorias, transmitiendo } = data
+  const { proximoPartido, bannerImagen } = data
   const [zoom, setZoom] = useState(false)
 
   useEffect(() => {
@@ -223,8 +210,6 @@ export default function Home({ data }) {
     window.addEventListener('popstate', handlePop)
     return () => window.removeEventListener('popstate', handlePop)
   }, [zoom])
-
-  const jugandoAhora = CATS_LIVE.filter(c => categorias?.[c.key]?.jugando === true)
 
   return (
     <div className="flex flex-col">
@@ -286,44 +271,6 @@ export default function Home({ data }) {
           )}
         </div>
       </div>
-
-      {/* En Vivo */}
-      {jugandoAhora.length > 0 && (
-        <div className="mx-3 mt-3">
-          <div className="rounded-2xl border border-red-500/30 p-4 shadow-xl flex flex-col gap-3" style={{ background: 'rgba(180,0,0,0.12)', backdropFilter: 'blur(12px)' }}>
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
-              </span>
-              <p className="text-red-400 font-bold text-sm uppercase tracking-wider">Jugando Ahora</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {jugandoAhora.map(cat => (
-                <span key={cat.key}
-                  className="px-3 py-1.5 rounded-full text-xs font-bold text-white border border-red-500/40"
-                  style={{ background: 'rgba(200,0,0,0.25)' }}>
-                  {cat.label}
-                </span>
-              ))}
-            </div>
-            {transmitiendo === true && (
-              <a
-                href="#"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-2.5 rounded-xl py-3 font-bold text-white text-sm active:opacity-80 transition-opacity"
-                style={{ background: '#FF0000' }}
-              >
-                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white shrink-0">
-                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                </svg>
-                VER PARTIDO EN VIVO
-              </a>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Encuesta */}
       {data.encuesta?.activa === true && (

@@ -14,17 +14,6 @@ const PASS = '1883'
 
 const defaultData = {
   proximoPartido: { rival: '', dia: '', cancha: '', mapsUrl: '' },
-  categorias: {
-    "1ra":        { jugando: false },
-    "3ra":        { jugando: false },
-    "4ta":        { jugando: false },
-    "5ta":        { jugando: false },
-    "6ta":        { jugando: false },
-    reservaMasc:  { jugando: false },
-    reservaFem:   { jugando: false },
-    mas33:        { jugando: false },
-    mas40:        { jugando: false },
-  },
 }
 
 function AppBackground({ fondoImagen }) {
@@ -126,7 +115,6 @@ export default function App() {
         setData(prev => ({
           ...prev,
           ...val,
-          categorias: { ...prev.categorias, ...(val.categorias || {}) },
           proximoPartido: val.proximoPartido || prev.proximoPartido,
           fechas: val.fechas || prev.fechas || {},
         }))

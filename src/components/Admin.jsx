@@ -16,99 +16,6 @@ const CATEGORIAS = [
   { key: '2020',    label: 'Categoría 2020' },
 ]
 
-const CATS_LIVE = [
-  { key: 'reservaFem',  label: 'Reserva Femenino', short: 'Res. F' },
-  { key: 'reservaMasc', label: 'Reserva Masculino', short: 'Res. M' },
-  { key: '5ta',         label: '5ta División',      short: '5ta' },
-  { key: '4ta',         label: '4ta División',      short: '4ta' },
-  { key: '6ta',         label: '6ta División',      short: '6ta' },
-  { key: 'mas33',       label: 'Seniors +33',       short: '+33' },
-  { key: 'fem1ra',      label: '1ra Femenino',      short: '1ra F' },
-  { key: '3ra',         label: '3ra División',      short: '3ra' },
-  { key: 'mas40',       label: 'Seniors +40',       short: '+40' },
-  { key: '1ra',         label: '1ra División',      short: '1ra' },
-]
-
-function SwipeSlider({ onComplete }) {
-  const [pos, setPos]       = useState(0)
-  const [dragging, setDragging] = useState(false)
-  const containerRef        = useRef(null)
-  const startX              = useRef(0)
-
-  const handleStart = (clientX) => {
-    setDragging(true)
-    startX.current = clientX - pos
-  }
-
-  const handleMove = (clientX) => {
-    if (!dragging) return
-    const container = containerRef.current
-    if (!container) return
-    const maxPos = container.offsetWidth - 56
-    const newPos = Math.max(0, Math.min(clientX - startX.current, maxPos))
-    setPos(newPos)
-  }
-
-  const handleEnd = () => {
-    if (!dragging) return
-    setDragging(false)
-    const container = containerRef.current
-    if (!container) return
-    const maxPos = container.offsetWidth - 56
-    if (pos >= maxPos * 0.85) {
-      setPos(0)
-      onComplete()
-    } else {
-      setPos(0)
-    }
-  }
-
-  return (
-    <div
-      ref={containerRef}
-      className="relative w-full h-14 rounded-2xl overflow-hidden select-none"
-      style={{ background: 'rgba(255,0,0,0.12)', border: '1px solid rgba(255,0,0,0.3)' }}
-      onMouseMove={e => handleMove(e.clientX)}
-      onMouseUp={handleEnd}
-      onMouseLeave={handleEnd}
-      onTouchMove={e => { e.preventDefault(); handleMove(e.touches[0].clientX) }}
-      onTouchEnd={handleEnd}
-    >
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <span className="text-red-400/50 text-sm font-bold tracking-wide">Deslizá para transmitir</span>
-      </div>
-      <div
-        className="absolute top-1.5 bottom-1.5 left-1.5 w-11 rounded-xl flex items-center justify-center cursor-grab active:cursor-grabbing z-10"
-        style={{
-          background: '#FF0000',
-          transform: `translateX(${pos}px)`,
-          transition: dragging ? 'none' : 'transform 0.3s ease',
-        }}
-        onMouseDown={e => handleStart(e.clientX)}
-        onTouchStart={e => handleStart(e.touches[0].clientX)}
-      >
-        <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-        </svg>
-      </div>
-    </div>
-  )
-}
-
-function Toggle({ checked, onChange, label }) {
-  return (
-    <div className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
-      <span className="text-sm text-gray-300">{label}</span>
-      <button
-        onClick={() => onChange(!checked)}
-        className={`relative w-12 h-6 rounded-full transition-colors duration-200 ${checked ? 'bg-[#16a34a]' : 'bg-white/10'}`}
-      >
-        <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${checked ? 'translate-x-6' : 'translate-x-0'}`} />
-      </button>
-    </div>
-  )
-}
-
 function ImagenSection({ label, desc, imagen, uploading, onUpload, onDelete }) {
   return (
     <div className="bg-[#1e1e1e] rounded-2xl border border-white/5 p-4 flex flex-col gap-3">
@@ -151,7 +58,7 @@ function ImagenSection({ label, desc, imagen, uploading, onUpload, onDelete }) {
 }
 
 export default function Admin({ data, onSalir }) {
-  const [tab, setTab]             = useState('live')
+  const [tab, setTab]             = useState('banner')
   const [banner, setBanner]       = useState({ ...data.proximoPartido })
   const [saving, setSaving]       = useState(false)
   const [savingBanner, setSavingBanner] = useState(false)
@@ -173,7 +80,6 @@ export default function Admin({ data, onSalir }) {
   const [urlsTabla, setUrlsTabla]       = useState(data.tablasUrls || {})
   const [urlTablaInput, setUrlTablaInput] = useState(data.tablasUrls?.general || '')
   const [uploadingImg, setUploadingImg] = useState(false)
-  const [transmitiendo, setTransmitiendo]   = useState(data.transmitiendo === true)
   const [encuestaActiva, setEncuestaActiva] = useState(data.encuesta?.activa === true)
   // Novedades
   const [novedades, setNovedades]           = useState(data.novedades || {})
@@ -195,21 +101,6 @@ export default function Admin({ data, onSalir }) {
       await set(ref(db, 'encuesta/votos'), { op1: 0, op2: 0, op3: 0 })
       showSaved()
     } catch { alert('Error al resetear votos.') }
-  }
-
-  const activarTransmision = async () => {
-    try {
-      await set(ref(db, 'transmitiendo'), true)
-      setTransmitiendo(true)
-    } catch { alert('Error al guardar estado de transmisión.') }
-  }
-
-  const finalizarTransmision = async () => {
-    if (!confirm('¿Finalizar la transmisión?')) return
-    try {
-      await set(ref(db, 'transmitiendo'), false)
-      setTransmitiendo(false)
-    } catch { alert('Error al finalizar la transmisión.') }
   }
 
   // Sedes
@@ -268,11 +159,6 @@ export default function Admin({ data, onSalir }) {
     if (showSavedTimerRef.current) clearTimeout(showSavedTimerRef.current)
     setSavedMsg('Guardado ✓')
     showSavedTimerRef.current = setTimeout(() => setSavedMsg(''), 2500)
-  }
-
-  const toggleJugando = async (key, val) => {
-    try { await update(ref(db, `categorias/${key}`), { jugando: val }) }
-    catch { alert('Error al guardar. Verificá la conexión a Firebase.') }
   }
 
   const saveBanner = async () => {
@@ -550,7 +436,6 @@ export default function Admin({ data, onSalir }) {
       {/* Tabs */}
       <div className="flex border-b border-white/10 sticky top-0 z-10" style={{ background: 'rgba(10,2,4,0.95)', backdropFilter: 'blur(12px)' }}>
         {[
-          { id: 'live',      label: 'En Vivo' },
           { id: 'banner',    label: 'Banner' },
           { id: 'partidos',  label: 'Partidos' },
           { id: 'tablas',    label: 'Tablas' },
@@ -570,59 +455,6 @@ export default function Admin({ data, onSalir }) {
           {savedMsg}
         </div>
       )}
-
-      {/* EN VIVO */}
-      {tab === 'live' && (() => {
-        const hayAlgunoJugando = CATS_LIVE.some(c => data.categorias?.[c.key]?.jugando === true)
-        return (
-          <div className="px-3 py-4 flex flex-col gap-4">
-            <div>
-              <p className="text-gray-500 text-xs uppercase tracking-widest mb-3">Estado por categoría</p>
-              <div className="bg-[#1e1e1e] rounded-2xl border border-white/5 px-4">
-                {CATS_LIVE.map(cat => (
-                  <Toggle key={cat.key} label={cat.label}
-                    checked={data.categorias?.[cat.key]?.jugando === true}
-                    onChange={val => toggleJugando(cat.key, val)} />
-                ))}
-              </div>
-              <p className="text-gray-600 text-xs mt-3 text-center">Los cambios se aplican en tiempo real</p>
-            </div>
-
-            <div>
-              <p className="text-gray-500 text-xs uppercase tracking-widest mb-3">Transmisión en vivo</p>
-              <div className="bg-[#1e1e1e] rounded-2xl border border-white/5 p-4 flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-300">Estado</span>
-                  <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${transmitiendo ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-white/8 text-gray-500 border border-white/10'}`}>
-                    {transmitiendo ? '🔴 En vivo' : 'Pendiente de transmisión'}
-                  </span>
-                </div>
-
-                {transmitiendo ? (
-                  <button
-                    onClick={finalizarTransmision}
-                    className="w-full flex items-center justify-center gap-2 rounded-2xl py-3.5 font-bold text-white text-sm active:opacity-80 transition-opacity border border-red-500/40"
-                    style={{ background: 'rgba(180,0,0,0.25)' }}
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    Finalizar transmisión
-                  </button>
-                ) : (
-                  <SwipeSlider onComplete={activarTransmision} />
-                )}
-
-                <p className="text-gray-600 text-[11px] text-center">
-                  {transmitiendo
-                    ? 'El botón YouTube es visible en Inicio para los usuarios'
-                    : 'Deslizá para activar la transmisión y abrir YouTube'}
-                </p>
-              </div>
-            </div>
-          </div>
-        )
-      })()}
 
       {/* BANNER */}
       {tab === 'banner' && (
