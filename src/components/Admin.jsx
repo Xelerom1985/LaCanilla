@@ -137,10 +137,8 @@ export default function Admin({ data, onSalir }) {
   // Plantel
   const [plantelCat, setPlantelCat]         = useState('2011')
   const [nuevoJugador, setNuevoJugador]     = useState('')
-  const [nuevoDni, setNuevoDni]             = useState('')
   const [editingId, setEditingId]           = useState(null)
   const [editingNombre, setEditingNombre]   = useState('')
-  const [editingDni, setEditingDni]         = useState('')
   const [plantelFotos, setPlantelFotos]     = useState(data.plantelFotos || {})
   const [uploadingPlantelFoto, setUploadingPlantelFoto] = useState(false)
   const plantelFotoRef = useRef(null)
@@ -235,9 +233,8 @@ export default function Admin({ data, onSalir }) {
     const nombre = nuevoJugador.trim()
     if (!nombre) return
     try {
-      await push(ref(db, `jugadores/${plantelCat}`), { nombre, dni: nuevoDni.trim() })
+      await push(ref(db, `jugadores/${plantelCat}`), { nombre })
       setNuevoJugador('')
-      setNuevoDni('')
     } catch { alert('Error al agregar jugador.') }
   }
 
@@ -251,7 +248,7 @@ export default function Admin({ data, onSalir }) {
     const nombre = editingNombre.trim()
     if (!nombre) return
     try {
-      await set(ref(db, `jugadores/${plantelCat}/${id}`), { nombre, dni: editingDni.trim() })
+      await set(ref(db, `jugadores/${plantelCat}/${id}`), { nombre })
       setEditingId(null)
     } catch { alert('Error al guardar.') }
   }
@@ -754,7 +751,7 @@ export default function Admin({ data, onSalir }) {
         const jugadoresCat = data.jugadores?.[plantelCat] || {}
         const isArq = (n) => /\(Arquer[oa]\)/i.test(n)
         const lista = Object.entries(jugadoresCat)
-          .map(([id, v]) => ({ id, nombre: typeof v === 'string' ? v : v.nombre, dni: typeof v === 'string' ? '' : (v.dni || '') }))
+          .map(([id, v]) => ({ id, nombre: typeof v === 'string' ? v : v.nombre }))
           .sort((a, b) => {
             const aA = isArq(a.nombre), bA = isArq(b.nombre)
             if (aA && !bA) return -1
@@ -770,7 +767,7 @@ export default function Admin({ data, onSalir }) {
             <div className="grid grid-cols-3 gap-2">
               {CATEGORIAS.filter(cat => cat.key !== 'general').map(cat => (
                 <button key={cat.key}
-                  onClick={() => { setPlantelCat(cat.key); setEditingId(null); setNuevoJugador(''); setNuevoDni('') }}
+                  onClick={() => { setPlantelCat(cat.key); setEditingId(null); setNuevoJugador('') }}
                   className="px-2 py-2 rounded-xl text-xs font-semibold transition-all text-center"
                   style={{
                     background: plantelCat === cat.key ? '#16a34a' : '#1e1e1e',
@@ -800,14 +797,6 @@ export default function Admin({ data, onSalir }) {
                   placeholder="Apellido y nombre..."
                   className="flex-1 bg-[#2a2a2a] border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-[#16a34a]"
                 />
-                <input
-                  type="text"
-                  value={nuevoDni}
-                  onChange={e => setNuevoDni(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && addJugador()}
-                  placeholder="DNI"
-                  className="w-24 bg-[#2a2a2a] border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-[#16a34a]"
-                />
                 <button onClick={addJugador}
                   className="bg-[#16a34a] active:bg-[#0f7a37] text-white rounded-xl px-4 py-2 text-sm font-bold shrink-0">
                   +
@@ -819,7 +808,7 @@ export default function Admin({ data, onSalir }) {
                 <p className="text-white/20 text-sm text-center py-8">Sin jugadores</p>
               ) : (
                 <div className="divide-y divide-white/5 max-h-72 overflow-y-auto">
-                  {lista.map(({ id, nombre, dni }) => (
+                  {lista.map(({ id, nombre }) => (
                     <div key={id} className="flex items-center gap-2 px-3 py-2.5">
                       {editingId === id ? (
                         <>
@@ -830,14 +819,6 @@ export default function Admin({ data, onSalir }) {
                             onKeyDown={e => { if (e.key === 'Enter') saveEditJugador(id); if (e.key === 'Escape') setEditingId(null) }}
                             className="flex-1 bg-[#2a2a2a] border border-[#16a34a] rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none"
                             autoFocus
-                          />
-                          <input
-                            type="text"
-                            value={editingDni}
-                            onChange={e => setEditingDni(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Enter') saveEditJugador(id); if (e.key === 'Escape') setEditingId(null) }}
-                            placeholder="DNI"
-                            className="w-20 bg-[#2a2a2a] border border-[#16a34a] rounded-lg px-2 py-1.5 text-white text-sm focus:outline-none"
                           />
                           <button onClick={() => saveEditJugador(id)}
                             className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center shrink-0">
@@ -854,11 +835,8 @@ export default function Admin({ data, onSalir }) {
                         </>
                       ) : (
                         <>
-                          <span className="flex-1 text-white/80 text-sm truncate">
-                            {nombre}
-                            {dni && <span className="text-white/25 text-xs ml-2">{dni}</span>}
-                          </span>
-                          <button onClick={() => { setEditingId(id); setEditingNombre(nombre); setEditingDni(dni) }}
+                          <span className="flex-1 text-white/80 text-sm truncate">{nombre}</span>
+                          <button onClick={() => { setEditingId(id); setEditingNombre(nombre) }}
                             className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
                             <svg className="w-3.5 h-3.5 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
