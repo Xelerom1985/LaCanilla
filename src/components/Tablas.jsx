@@ -2,17 +2,17 @@
 import { db, ref, runTransaction } from '../firebase'
 
 const CATEGORIAS = [
-  { key: 'general',     label: 'Tabla General' },
-  { key: 'reservaFem',  label: 'Reserva Fem.' },
-  { key: 'reservaMasc', label: 'Reserva Masc.' },
-  { key: '5ta',         label: '5ta División' },
-  { key: '4ta',         label: '4ta División' },
-  { key: '6ta',         label: '6ta División' },
-  { key: 'mas33',       label: 'Seniors +33' },
-  { key: 'fem1ra',      label: '1ra Femenino' },
-  { key: '3ra',         label: '3ra División' },
-  { key: 'mas40',       label: 'Seniors +40' },
-  { key: '1ra',         label: '1ra División' },
+  { key: 'general', label: 'Tabla General' },
+  { key: '2011',    label: 'Categoría 2011' },
+  { key: '2012',    label: 'Categoría 2012' },
+  { key: '2013',    label: 'Categoría 2013' },
+  { key: '2014',    label: 'Categoría 2014' },
+  { key: '2015',    label: 'Categoría 2015' },
+  { key: '2016',    label: 'Categoría 2016' },
+  { key: '2017',    label: 'Categoría 2017' },
+  { key: '2018',    label: 'Categoría 2018' },
+  { key: '2019',    label: 'Categoría 2019' },
+  { key: '2020',    label: 'Categoría 2020' },
 ]
 
 function PinchZoomImage({ src, alt, onClose }) {

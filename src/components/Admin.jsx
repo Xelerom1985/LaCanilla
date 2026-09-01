@@ -3,17 +3,17 @@ import { db, ref, update, set, push, remove } from '../firebase'
 import { compressImage } from '../utils/compressImage'
 
 const CATEGORIAS = [
-  { key: 'general',     label: 'Tabla General' },
-  { key: 'reservaFem',  label: 'Reserva Femenino' },
-  { key: 'reservaMasc', label: 'Reserva Masculino' },
-  { key: '5ta',         label: '5ta División' },
-  { key: '4ta',         label: '4ta División' },
-  { key: '6ta',         label: '6ta División' },
-  { key: 'mas33',       label: 'Seniors +33' },
-  { key: 'fem1ra',      label: '1ra Femenino' },
-  { key: '3ra',         label: '3ra División' },
-  { key: 'mas40',       label: 'Seniors +40' },
-  { key: '1ra',         label: '1ra División' },
+  { key: 'general', label: 'Tabla General' },
+  { key: '2011',    label: 'Categoría 2011' },
+  { key: '2012',    label: 'Categoría 2012' },
+  { key: '2013',    label: 'Categoría 2013' },
+  { key: '2014',    label: 'Categoría 2014' },
+  { key: '2015',    label: 'Categoría 2015' },
+  { key: '2016',    label: 'Categoría 2016' },
+  { key: '2017',    label: 'Categoría 2017' },
+  { key: '2018',    label: 'Categoría 2018' },
+  { key: '2019',    label: 'Categoría 2019' },
+  { key: '2020',    label: 'Categoría 2020' },
 ]
 
 const CATS_APERTURA = [
@@ -278,10 +278,12 @@ export default function Admin({ data, onSalir }) {
   }
 
   // Plantel
-  const [plantelCat, setPlantelCat]         = useState('reservaFem')
+  const [plantelCat, setPlantelCat]         = useState('2011')
   const [nuevoJugador, setNuevoJugador]     = useState('')
+  const [nuevoDni, setNuevoDni]             = useState('')
   const [editingId, setEditingId]           = useState(null)
   const [editingNombre, setEditingNombre]   = useState('')
+  const [editingDni, setEditingDni]         = useState('')
   const [plantelFotos, setPlantelFotos]     = useState(data.plantelFotos || {})
   const [uploadingPlantelFoto, setUploadingPlantelFoto] = useState(false)
   const plantelFotoRef = useRef(null)
@@ -400,8 +402,9 @@ export default function Admin({ data, onSalir }) {
     const nombre = nuevoJugador.trim()
     if (!nombre) return
     try {
-      await push(ref(db, `jugadores/${plantelCat}`), { nombre })
+      await push(ref(db, `jugadores/${plantelCat}`), { nombre, dni: nuevoDni.trim() })
       setNuevoJugador('')
+      setNuevoDni('')
     } catch { alert('Error al agregar jugador.') }
   }
 
@@ -415,7 +418,7 @@ export default function Admin({ data, onSalir }) {
     const nombre = editingNombre.trim()
     if (!nombre) return
     try {
-      await set(ref(db, `jugadores/${plantelCat}/${id}`), { nombre })
+      await set(ref(db, `jugadores/${plantelCat}/${id}`), { nombre, dni: editingDni.trim() })
       setEditingId(null)
     } catch { alert('Error al guardar.') }
   }
@@ -1060,7 +1063,7 @@ export default function Admin({ data, onSalir }) {
         const jugadoresCat = data.jugadores?.[plantelCat] || {}
         const isArq = (n) => /\(Arquer[oa]\)/i.test(n)
         const lista = Object.entries(jugadoresCat)
-          .map(([id, v]) => ({ id, nombre: typeof v === 'string' ? v : v.nombre }))
+          .map(([id, v]) => ({ id, nombre: typeof v === 'string' ? v : v.nombre, dni: typeof v === 'string' ? '' : (v.dni || '') }))
           .sort((a, b) => {
             const aA = isArq(a.nombre), bA = isArq(b.nombre)
             if (aA && !bA) return -1
@@ -1074,9 +1077,9 @@ export default function Admin({ data, onSalir }) {
 
             {/* Selector */}
             <div className="grid grid-cols-3 gap-2">
-              {CATS_LIVE.map(cat => (
+              {CATEGORIAS.filter(cat => cat.key !== 'general').map(cat => (
                 <button key={cat.key}
-                  onClick={() => { setPlantelCat(cat.key); setEditingId(null); setNuevoJugador('') }}
+                  onClick={() => { setPlantelCat(cat.key); setEditingId(null); setNuevoJugador(''); setNuevoDni('') }}
                   className="px-2 py-2 rounded-xl text-xs font-semibold transition-all text-center"
                   style={{
                     background: plantelCat === cat.key ? '#16a34a' : '#1e1e1e',
@@ -1103,8 +1106,16 @@ export default function Admin({ data, onSalir }) {
                   value={nuevoJugador}
                   onChange={e => setNuevoJugador(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && addJugador()}
-                  placeholder="Nombre completo..."
+                  placeholder="Apellido y nombre..."
                   className="flex-1 bg-[#2a2a2a] border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-[#16a34a]"
+                />
+                <input
+                  type="text"
+                  value={nuevoDni}
+                  onChange={e => setNuevoDni(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && addJugador()}
+                  placeholder="DNI"
+                  className="w-24 bg-[#2a2a2a] border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-[#16a34a]"
                 />
                 <button onClick={addJugador}
                   className="bg-[#16a34a] active:bg-[#0f7a37] text-white rounded-xl px-4 py-2 text-sm font-bold shrink-0">
@@ -1117,7 +1128,7 @@ export default function Admin({ data, onSalir }) {
                 <p className="text-white/20 text-sm text-center py-8">Sin jugadores</p>
               ) : (
                 <div className="divide-y divide-white/5 max-h-72 overflow-y-auto">
-                  {lista.map(({ id, nombre }) => (
+                  {lista.map(({ id, nombre, dni }) => (
                     <div key={id} className="flex items-center gap-2 px-3 py-2.5">
                       {editingId === id ? (
                         <>
@@ -1128,6 +1139,14 @@ export default function Admin({ data, onSalir }) {
                             onKeyDown={e => { if (e.key === 'Enter') saveEditJugador(id); if (e.key === 'Escape') setEditingId(null) }}
                             className="flex-1 bg-[#2a2a2a] border border-[#16a34a] rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none"
                             autoFocus
+                          />
+                          <input
+                            type="text"
+                            value={editingDni}
+                            onChange={e => setEditingDni(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') saveEditJugador(id); if (e.key === 'Escape') setEditingId(null) }}
+                            placeholder="DNI"
+                            className="w-20 bg-[#2a2a2a] border border-[#16a34a] rounded-lg px-2 py-1.5 text-white text-sm focus:outline-none"
                           />
                           <button onClick={() => saveEditJugador(id)}
                             className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center shrink-0">
@@ -1144,8 +1163,11 @@ export default function Admin({ data, onSalir }) {
                         </>
                       ) : (
                         <>
-                          <span className="flex-1 text-white/80 text-sm">{nombre}</span>
-                          <button onClick={() => { setEditingId(id); setEditingNombre(nombre) }}
+                          <span className="flex-1 text-white/80 text-sm truncate">
+                            {nombre}
+                            {dni && <span className="text-white/25 text-xs ml-2">{dni}</span>}
+                          </span>
+                          <button onClick={() => { setEditingId(id); setEditingNombre(nombre); setEditingDni(dni) }}
                             className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
                             <svg className="w-3.5 h-3.5 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
