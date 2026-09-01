@@ -182,7 +182,7 @@ export default function App() {
             {seccion === 'partidos' && <Partidos data={data} />}
             {seccion === 'tablas' && <Tablas data={data} />}
             {seccion === 'plantel' && <Plantel data={data} />}
-            {seccion === 'sedes' && <Sedes />}
+            {seccion === 'sedes' && <Sedes data={data} />}
             {seccion === 'admin' && authed && <Admin data={data} />}
           </>
         )}

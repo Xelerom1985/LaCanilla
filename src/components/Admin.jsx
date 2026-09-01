@@ -1,7 +1,6 @@
 ﻿import { useState, useRef, useEffect } from 'react'
 import { db, ref, update, set, push, remove } from '../firebase'
 import { compressImage } from '../utils/compressImage'
-import { SEDES } from '../data/sedes'
 
 const CATEGORIAS = [
   { key: 'general', label: 'Tabla General' },
@@ -276,6 +275,40 @@ export default function Admin({ data, onSalir }) {
       await set(ref(db, 'transmitiendo'), false)
       setTransmitiendo(false)
     } catch { alert('Error al finalizar la transmisión.') }
+  }
+
+  // Sedes
+  const [nuevaSedeNombre, setNuevaSedeNombre]       = useState('')
+  const [nuevaSedeDireccion, setNuevaSedeDireccion] = useState('')
+  const [editingSedeId, setEditingSedeId]           = useState(null)
+  const [editingSedeNombre, setEditingSedeNombre]   = useState('')
+  const [editingSedeDireccion, setEditingSedeDireccion] = useState('')
+
+  const addSede = async () => {
+    const nombre = nuevaSedeNombre.trim()
+    const direccion = nuevaSedeDireccion.trim()
+    if (!nombre || !direccion) return
+    try {
+      await push(ref(db, 'sedes'), { nombre, direccion })
+      setNuevaSedeNombre('')
+      setNuevaSedeDireccion('')
+    } catch { alert('Error al agregar la sede.') }
+  }
+
+  const deleteSede = async (id) => {
+    if (!confirm('¿Eliminar esta sede?')) return
+    try { await remove(ref(db, `sedes/${id}`)) }
+    catch { alert('Error al eliminar la sede.') }
+  }
+
+  const saveEditSede = async (id) => {
+    const nombre = editingSedeNombre.trim()
+    const direccion = editingSedeDireccion.trim()
+    if (!nombre || !direccion) return
+    try {
+      await set(ref(db, `sedes/${id}`), { nombre, direccion })
+      setEditingSedeId(null)
+    } catch { alert('Error al guardar la sede.') }
   }
 
   // Plantel
@@ -1321,36 +1354,114 @@ export default function Admin({ data, onSalir }) {
       )}
 
       {/* SEDES */}
-      {tab === 'sedes' && (
-        <div className="px-3 py-4 flex flex-col gap-4">
-          <p className="text-gray-500 text-xs uppercase tracking-widest">Dirección de los clubes · Súper Liga de Solano</p>
+      {tab === 'sedes' && (() => {
+        const sedesLista = Object.entries(data.sedes || {})
+          .map(([id, v]) => ({ id, nombre: v.nombre || '', direccion: v.direccion || '' }))
+          .sort((a, b) => a.nombre.localeCompare(b.nombre))
 
-          <div className="bg-[#1e1e1e] rounded-2xl border border-white/5 overflow-hidden">
-            <div className="divide-y divide-white/5">
-              {SEDES.map(({ nombre, direccion }) => (
-                <a
-                  key={nombre}
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${direccion}, Solano, Buenos Aires`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 px-4 py-3 active:bg-white/5 transition-colors"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-semibold ${nombre === 'La Canilla' ? 'text-[#16a34a]' : 'text-white/85'}`}>{nombre}</p>
-                    <p className="text-white/35 text-xs mt-0.5">{direccion}</p>
-                  </div>
-                  <svg className="w-4 h-4 text-white/25 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </a>
-              ))}
+        return (
+          <div className="px-3 py-4 flex flex-col gap-4">
+            <p className="text-gray-500 text-xs uppercase tracking-widest">Dirección de los clubes · Súper Liga de Solano</p>
+
+            <div className="bg-[#1e1e1e] rounded-2xl border border-white/5 overflow-hidden">
+              {/* Header */}
+              <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/5">
+                <span className="text-white/50 text-xs uppercase tracking-wide">Clubes</span>
+                <span className="text-white/25 text-xs">{sedesLista.length} cargados</span>
+              </div>
+
+              {/* Agregar sede */}
+              <div className="flex flex-col gap-2 px-3 py-3 border-b border-white/5">
+                <input
+                  type="text"
+                  value={nuevaSedeNombre}
+                  onChange={e => setNuevaSedeNombre(e.target.value)}
+                  placeholder="Nombre del club..."
+                  className="w-full bg-[#2a2a2a] border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-[#16a34a]"
+                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={nuevaSedeDireccion}
+                    onChange={e => setNuevaSedeDireccion(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && addSede()}
+                    placeholder="Dirección..."
+                    className="flex-1 bg-[#2a2a2a] border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-[#16a34a]"
+                  />
+                  <button onClick={addSede}
+                    className="bg-[#16a34a] active:bg-[#0f7a37] text-white rounded-xl px-4 py-2 text-sm font-bold shrink-0">
+                    +
+                  </button>
+                </div>
+              </div>
+
+              {/* Lista */}
+              {sedesLista.length === 0 ? (
+                <p className="text-white/20 text-sm text-center py-8">Sin sedes cargadas</p>
+              ) : (
+                <div className="divide-y divide-white/5">
+                  {sedesLista.map(({ id, nombre, direccion }) => (
+                    <div key={id} className="flex items-center gap-2 px-3 py-2.5">
+                      {editingSedeId === id ? (
+                        <>
+                          <div className="flex-1 flex flex-col gap-1.5">
+                            <input
+                              type="text"
+                              value={editingSedeNombre}
+                              onChange={e => setEditingSedeNombre(e.target.value)}
+                              onKeyDown={e => { if (e.key === 'Escape') setEditingSedeId(null) }}
+                              className="w-full bg-[#2a2a2a] border border-[#16a34a] rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none"
+                              autoFocus
+                            />
+                            <input
+                              type="text"
+                              value={editingSedeDireccion}
+                              onChange={e => setEditingSedeDireccion(e.target.value)}
+                              onKeyDown={e => { if (e.key === 'Enter') saveEditSede(id); if (e.key === 'Escape') setEditingSedeId(null) }}
+                              className="w-full bg-[#2a2a2a] border border-[#16a34a] rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none"
+                            />
+                          </div>
+                          <button onClick={() => saveEditSede(id)}
+                            className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center shrink-0">
+                            <svg className="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </button>
+                          <button onClick={() => setEditingSedeId(null)}
+                            className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+                            <svg className="w-4 h-4 text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white/80 text-sm font-medium truncate">{nombre}</p>
+                            <p className="text-white/35 text-xs truncate">{direccion}</p>
+                          </div>
+                          <button onClick={() => { setEditingSedeId(id); setEditingSedeNombre(nombre); setEditingSedeDireccion(direccion) }}
+                            className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+                            <svg className="w-3.5 h-3.5 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button onClick={() => deleteSede(id)}
+                            className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
+                            <svg className="w-3.5 h-3.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
-
-          <p className="text-white/15 text-[10px] text-center">Tocá un club para abrir la dirección en Google Maps</p>
-        </div>
-      )}
+        )
+      })()}
 
       <div className="h-6" />
     </div>
