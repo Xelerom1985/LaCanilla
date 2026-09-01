@@ -9,32 +9,18 @@ const formatDia = (dia) => {
   return dia
 }
 
-const CATS_APERTURA = [
-  { key: 'reservaFem',  label: 'Reserva Femenino' },
-  { key: 'reservaMasc', label: 'Reserva Masculino' },
-  { key: '5ta',         label: '5ta División' },
-  { key: '4ta',         label: '4ta División' },
-  { key: '6ta',         label: '6ta División' },
-  { key: 'mas33',       label: 'Seniors +33' },
-  { key: '3ra',         label: '3ra División' },
-  { key: 'mas40',       label: 'Seniors +40' },
-  { key: '1ra',         label: '1ra División' },
+const CATEGORIAS_ACTUALES = [
+  { key: '2011', label: 'Categoría 2011' },
+  { key: '2012', label: 'Categoría 2012' },
+  { key: '2013', label: 'Categoría 2013' },
+  { key: '2014', label: 'Categoría 2014' },
+  { key: '2015', label: 'Categoría 2015' },
+  { key: '2016', label: 'Categoría 2016' },
+  { key: '2017', label: 'Categoría 2017' },
+  { key: '2018', label: 'Categoría 2018' },
+  { key: '2019', label: 'Categoría 2019' },
+  { key: '2020', label: 'Categoría 2020' },
 ]
-
-const CATS_CLAUSURA = [
-  { key: 'reservaFem',  label: 'Reserva Femenino' },
-  { key: 'reservaMasc', label: 'Reserva Masculino' },
-  { key: '5ta',         label: '5ta División' },
-  { key: '4ta',         label: '4ta División' },
-  { key: '6ta',         label: '6ta División' },
-  { key: 'mas33',       label: 'Seniors +33' },
-  { key: 'fem1ra',      label: '1ra Femenino' },
-  { key: '3ra',         label: '3ra División' },
-  { key: 'mas40',       label: 'Seniors +40' },
-  { key: '1ra',         label: '1ra División' },
-]
-
-const getCats = (torneo) => torneo === 'clausura2026' ? CATS_CLAUSURA : CATS_APERTURA
 
 function IconCalendar() {
   return (
@@ -59,7 +45,7 @@ function DetalleFecha({ fecha, onBack }) {
   const localia    = fecha.localia   || 'local'
   const logoRival  = fecha.logoRival || null
   const resultados = fecha.resultados || {}
-  const cats       = getCats(fecha.torneo || 'apertura2026')
+  const cats       = CATEGORIAS_ACTUALES
 
   return (
     <div className="flex flex-col">
@@ -183,14 +169,12 @@ function DetalleFecha({ fecha, onBack }) {
 /* ── Pantalla principal: lista de fechas ── */
 export default function Partidos({ data }) {
   const [fechaSeleccionada, setFechaSeleccionada] = useState(null)
-  const [torneoFiltro, setTorneoFiltro] = useState(data.torneoActual || 'apertura2026')
   const fechasObj = data.fechas || {}
 
   const { fechasList, jugadas } = useMemo(() => {
     const hoy = new Date(); hoy.setHours(23, 59, 59, 999)
     const list = Object.entries(fechasObj)
       .map(([id, f]) => ({ id, ...f }))
-      .filter(f => (f.torneo || 'apertura2026') === torneoFiltro)
       .sort((a, b) => {
         const nA = parseInt((a.numFecha || '').replace(/\D/g, '')) || 0
         const nB = parseInt((b.numFecha || '').replace(/\D/g, '')) || 0
@@ -200,7 +184,7 @@ export default function Partidos({ data }) {
       /^\d{4}-\d{2}-\d{2}$/.test(f.dia || '') && new Date(f.dia + 'T23:59:59') <= hoy
     ).length
     return { fechasList: list, jugadas }
-  }, [fechasObj, torneoFiltro])
+  }, [fechasObj])
 
   if (fechaSeleccionada) {
     const fechaData = fechasObj[fechaSeleccionada]
@@ -218,24 +202,6 @@ export default function Partidos({ data }) {
         <p className="text-white/50 text-sm">
           {jugadas > 0 ? `${jugadas} fecha${jugadas > 1 ? 's' : ''} jugada${jugadas > 1 ? 's' : ''}` : 'Historial de fechas'}
         </p>
-
-        {/* Selector torneo */}
-        <div className="flex gap-2 mt-3">
-          {[
-            { key: 'apertura2026', label: 'Apertura 2026' },
-            { key: 'clausura2026', label: 'Clausura 2026' },
-          ].map(t => (
-            <button key={t.key} onClick={() => setTorneoFiltro(t.key)}
-              className="flex-1 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
-              style={{
-                background: torneoFiltro === t.key ? '#16a34a' : 'rgba(255,255,255,0.08)',
-                color: torneoFiltro === t.key ? '#fff' : 'rgba(255,255,255,0.4)',
-                border: torneoFiltro === t.key ? '1px solid #16a34a' : '1px solid rgba(255,255,255,0.08)',
-              }}>
-              {t.label}
-            </button>
-          ))}
-        </div>
       </div>
 
       <div className="px-3 pt-4 pb-6 flex flex-col gap-3">
@@ -243,9 +209,7 @@ export default function Partidos({ data }) {
           <div className="flex flex-col items-center justify-center py-20 gap-3">
             <p className="text-white/15 text-5xl">⚽</p>
             <p className="text-white/30 text-sm">No hay fechas cargadas</p>
-            <p className="text-white/20 text-xs">
-              {torneoFiltro === 'clausura2026' ? 'El Clausura aún no comenzó' : 'Cargalas desde Admin → Partidos'}
-            </p>
+            <p className="text-white/20 text-xs">Cargalas desde Admin → Partidos</p>
           </div>
         ) : (
           fechasList.map(fecha => (

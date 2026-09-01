@@ -16,19 +16,7 @@ const CATEGORIAS = [
   { key: '2020',    label: 'Categoría 2020' },
 ]
 
-const CATS_APERTURA = [
-  { key: 'reservaFem',  label: 'Reserva Femenino', short: 'Res. F' },
-  { key: 'reservaMasc', label: 'Reserva Masculino', short: 'Res. M' },
-  { key: '5ta',         label: '5ta División',      short: '5ta' },
-  { key: '4ta',         label: '4ta División',      short: '4ta' },
-  { key: '6ta',         label: '6ta División',      short: '6ta' },
-  { key: 'mas33',       label: 'Seniors +33',       short: '+33' },
-  { key: '3ra',         label: '3ra División',      short: '3ra' },
-  { key: 'mas40',       label: 'Seniors +40',       short: '+40' },
-  { key: '1ra',         label: '1ra División',      short: '1ra' },
-]
-
-const CATS_CLAUSURA = [
+const CATS_LIVE = [
   { key: 'reservaFem',  label: 'Reserva Femenino', short: 'Res. F' },
   { key: 'reservaMasc', label: 'Reserva Masculino', short: 'Res. M' },
   { key: '5ta',         label: '5ta División',      short: '5ta' },
@@ -40,10 +28,6 @@ const CATS_CLAUSURA = [
   { key: 'mas40',       label: 'Seniors +40',       short: '+40' },
   { key: '1ra',         label: '1ra División',      short: '1ra' },
 ]
-
-const getCats = (torneo) => torneo === 'clausura2026' ? CATS_CLAUSURA : CATS_APERTURA
-
-const CATS_LIVE = CATS_CLAUSURA
 
 function SwipeSlider({ onComplete }) {
   const [pos, setPos]       = useState(0)
@@ -191,61 +175,12 @@ export default function Admin({ data, onSalir }) {
   const [uploadingImg, setUploadingImg] = useState(false)
   const [transmitiendo, setTransmitiendo]   = useState(data.transmitiendo === true)
   const [encuestaActiva, setEncuestaActiva] = useState(data.encuesta?.activa === true)
-  const [torneoActual, setTorneoActual]     = useState(data.torneoActual || 'apertura2026')
   // Novedades
   const [novedades, setNovedades]           = useState(data.novedades || {})
   const [savingNov, setSavingNov]           = useState({})
   const [uploadingNovImg, setUploadingNovImg] = useState({})
   const novImgRefs = useRef({})
   const novFormsRef = useRef({})
-
-  const changeTorneo = async (val) => {
-    const cerrados = data.torneosCerrados || {}
-    if (cerrados[val]) return
-    try {
-      await set(ref(db, 'torneoActual'), val)
-      setTorneoActual(val)
-      showSaved()
-    } catch { alert('Error al cambiar el torneo activo.') }
-  }
-
-  const cerrarTorneo = async (torneoKey) => {
-    const label = torneoKey === 'apertura2026' ? 'Apertura 2026' : 'Clausura 2026'
-    if (!confirm(`¿Cerrar el ${label}? Ya no podrás editarlo desde Admin.`)) return
-    try {
-      await set(ref(db, `torneosCerrados/${torneoKey}`), true)
-      if (torneoActual === torneoKey) {
-        const otro = torneoKey === 'apertura2026' ? 'clausura2026' : 'apertura2026'
-        await set(ref(db, 'torneoActual'), otro)
-        setTorneoActual(otro)
-      }
-      showSaved()
-    } catch { alert('Error al cerrar el torneo.') }
-  }
-
-  const copiarFechasAlClausura = async () => {
-    const apertura = Object.entries(data.fechas || {}).filter(([, f]) => (f.torneo || 'apertura2026') === 'apertura2026')
-    if (apertura.length === 0) { alert('No hay fechas del Apertura para copiar.'); return }
-    if (!confirm(`¿Copiar ${apertura.length} fechas del Apertura al Clausura con la localía invertida?`)) return
-    setSaving(true)
-    try {
-      for (const [, f] of apertura) {
-        const nueva = {
-          numFecha:  f.numFecha  || '',
-          rival:     f.rival     || '',
-          localia:   f.localia === 'local' ? 'visitante' : 'local',
-          mapsUrl:   f.mapsUrl   || '',
-          logoRival: f.logoRival || '',
-          torneo:    'clausura2026',
-          dia:       '',
-          resultados: {},
-        }
-        await push(ref(db, 'fechas'), nueva)
-      }
-      showSaved()
-    } catch { alert('Error al copiar las fechas.') }
-    setSaving(false)
-  }
 
   const toggleEncuesta = async (val) => {
     try {
@@ -503,7 +438,7 @@ export default function Admin({ data, onSalir }) {
   }
 
   const abrirNuevaFecha = () => {
-    setFechaForm({ numFecha: '', rival: '', dia: '', localia: 'local', mapsUrl: '', logoRival: '', torneo: torneoActual })
+    setFechaForm({ numFecha: '', rival: '', dia: '', localia: 'local', mapsUrl: '', logoRival: '' })
     setResultadosForm({})
     setFechaActiva('nueva')
   }
@@ -517,7 +452,6 @@ export default function Admin({ data, onSalir }) {
       localia:   f.localia   || 'local',
       mapsUrl:   f.mapsUrl   || '',
       logoRival: f.logoRival || '',
-      torneo:    f.torneo    || 'apertura2026',
     })
     setResultadosForm(f.resultados || {})
     setFechaActiva(id)
@@ -525,10 +459,10 @@ export default function Admin({ data, onSalir }) {
 
   const saveFecha = async () => {
     const resultados = {}
-    getCats(fechaForm.torneo || 'apertura2026').forEach(cat => {
+    CATEGORIAS.filter(c => c.key !== 'general').forEach(cat => {
       if (resultadosForm[cat.key]) resultados[cat.key] = resultadosForm[cat.key]
     })
-    const fechaToSave = { ...fechaForm, resultados, torneo: fechaForm.torneo || 'apertura2026' }
+    const fechaToSave = { ...fechaForm, resultados }
     setSaving(true)
     try {
       if (fechaActiva === 'nueva') {
@@ -897,7 +831,7 @@ export default function Admin({ data, onSalir }) {
                     <span className="w-12 text-center text-[9px] text-red-500/60 font-bold uppercase">P</span>
                   </div>
                 </div>
-                {getCats(fechaForm.torneo || 'apertura2026').map(cat => {
+                {CATEGORIAS.filter(c => c.key !== 'general').map(cat => {
                   const val = resultadosForm[cat.key]
                   const toggle = (v) => setResultadosForm(r => ({ ...r, [cat.key]: r[cat.key] === v ? undefined : v }))
                   return (
@@ -924,90 +858,25 @@ export default function Admin({ data, onSalir }) {
           ) : (
             /* ── Lista de fechas ── */
             <>
-              {/* Torneo activo */}
-              <div className="bg-[#1e1e1e] rounded-2xl border border-white/5 p-4 flex flex-col gap-3">
-                <div>
-                  <p className="text-white/70 text-sm font-semibold">Torneo activo</p>
-                  <p className="text-white/25 text-xs mt-0.5">Las fechas nuevas se guardan bajo este torneo</p>
-                </div>
-                <div className="flex flex-col gap-2">
-                  {[
-                    { key: 'apertura2026', label: 'Apertura 2026' },
-                    { key: 'clausura2026', label: 'Clausura 2026' },
-                  ].map(t => {
-                    const cerrado = !!(data.torneosCerrados || {})[t.key]
-                    const activo  = torneoActual === t.key
-                    return (
-                      <div key={t.key} className="flex gap-2">
-                        <button onClick={() => changeTorneo(t.key)} disabled={cerrado}
-                          className="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2"
-                          style={{
-                            background: activo ? '#16a34a' : 'rgba(7,26,13,0.75)',
-                            border: activo ? '1px solid #16a34a' : '1px solid rgba(255,255,255,0.08)',
-                            color: cerrado ? 'rgba(255,255,255,0.2)' : activo ? '#fff' : 'rgba(255,255,255,0.4)',
-                            cursor: cerrado ? 'not-allowed' : 'pointer',
-                          }}>
-                          {cerrado && (
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                            </svg>
-                          )}
-                          {t.label} {cerrado ? '(cerrado)' : ''}
-                        </button>
-                        {activo && !cerrado && (
-                          <button onClick={() => cerrarTorneo(t.key)}
-                            className="px-3 rounded-xl text-xs font-bold border border-white/10 text-white/30 active:text-white/60 transition-colors"
-                            style={{ background: 'rgba(7,26,13,0.75)' }}
-                            title="Cerrar torneo">
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                            </svg>
-                          </button>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-
               <button onClick={abrirNuevaFecha}
                 className="w-full bg-[#16a34a] active:bg-[#0f7a37] text-white font-bold rounded-xl py-3.5 flex items-center justify-center gap-2">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                Nueva fecha — {torneoActual === 'clausura2026' ? 'Clausura 2026' : 'Apertura 2026'}
+                Nueva fecha
               </button>
 
-              {/* Lista filtrada por torneo activo */}
               {(() => {
-                const fechasFiltradas = Object.entries(fechas)
-                  .filter(([, f]) => (f.torneo || 'apertura2026') === torneoActual)
+                const fechasOrdenadas = Object.entries(fechas)
                   .sort(([, a], [, b]) => {
                     const nA = parseInt((a.numFecha || '').replace(/\D/g, '')) || 0
                     const nB = parseInt((b.numFecha || '').replace(/\D/g, '')) || 0
                     return nA - nB
                   })
-                return fechasFiltradas.length === 0 ? (
-                  <div className="flex flex-col gap-3">
-                    {torneoActual === 'clausura2026' && (
-                      <button onClick={copiarFechasAlClausura} disabled={saving}
-                        className="w-full rounded-2xl border border-blue-500/30 p-4 flex items-center gap-3 active:opacity-80 disabled:opacity-50"
-                        style={{ background: 'rgba(59,130,246,0.08)' }}>
-                        <svg className="w-5 h-5 text-blue-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                        <div className="text-left">
-                          <p className="text-blue-300 font-bold text-sm">{saving ? 'Copiando...' : 'Copiar fechas del Apertura'}</p>
-                          <p className="text-white/30 text-xs">Crea las mismas fechas con localía invertida</p>
-                        </div>
-                      </button>
-                    )}
-                    <p className="text-white/20 text-sm text-center py-4">
-                      No hay fechas cargadas para {torneoActual === 'clausura2026' ? 'Clausura 2026' : 'Apertura 2026'}
-                    </p>
-                  </div>
+                return fechasOrdenadas.length === 0 ? (
+                  <p className="text-white/20 text-sm text-center py-4">No hay fechas cargadas</p>
                 ) : (
-                  fechasFiltradas.map(([id, f]) => (
+                  fechasOrdenadas.map(([id, f]) => (
                     <div key={id} className="bg-[#1e1e1e] rounded-2xl border border-white/5 px-4 py-3 flex items-center gap-3">
                       <div className="flex-1 min-w-0" onClick={() => abrirFechaExistente(id)}>
                         {f.numFecha && <p className="text-[#16a34a] text-[10px] font-bold uppercase tracking-widest">{f.numFecha}</p>}

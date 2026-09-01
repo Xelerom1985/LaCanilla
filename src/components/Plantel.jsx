@@ -19,12 +19,9 @@ const RES_COLOR = {
   perdido:  { bg: 'bg-red-500',    text: 'text-red-400',    label: 'P' },
 }
 
-function calcStats(fechas, catKey, torneo) {
+function calcStats(fechas, catKey) {
   const partidos = Object.values(fechas || {})
-    .filter(f => {
-      const ft = f.torneo || 'apertura2026'
-      return ft === torneo && f.resultados?.[catKey]
-    })
+    .filter(f => f.resultados?.[catKey])
     .sort((a, b) => {
       if (a.dia && b.dia) return a.dia.localeCompare(b.dia)
       return (a.numFecha || '').localeCompare(b.numFecha || '')
@@ -41,11 +38,11 @@ function calcStats(fechas, catKey, torneo) {
   return { PJ, PG, PE, PP, pts, pct, local, visit, racha, partidos }
 }
 
-function calcGeneralStats(fechas, torneo) {
+function calcGeneralStats(fechas) {
   const cats = CATEGORIAS_ACTUALES
   let totalPJ = 0, totalPG = 0, totalPE = 0, totalPP = 0
   const porCat = cats.map(cat => {
-    const s = calcStats(fechas, cat.key, torneo)
+    const s = calcStats(fechas, cat.key)
     totalPJ += s.PJ
     totalPG += s.PG
     totalPE += s.PE
@@ -71,8 +68,8 @@ function MiniStat({ label, PG, PE, PP, PJ }) {
   )
 }
 
-function GeneralStats({ fechas, torneo }) {
-  const { totalPJ, totalPG, totalPE, totalPP, totalPts, totalPct, ranking } = calcGeneralStats(fechas, torneo)
+function GeneralStats({ fechas }) {
+  const { totalPJ, totalPG, totalPE, totalPP, totalPts, totalPct, ranking } = calcGeneralStats(fechas)
 
   if (totalPJ === 0) {
     return (
@@ -139,8 +136,8 @@ function GeneralStats({ fechas, torneo }) {
   )
 }
 
-function CatStats({ fechas, catKey, torneo }) {
-  const { PJ, PG, PE, PP, pts, pct, local, visit, racha, partidos } = calcStats(fechas, catKey, torneo)
+function CatStats({ fechas, catKey }) {
+  const { PJ, PG, PE, PP, pts, pct, local, visit, racha, partidos } = calcStats(fechas, catKey)
 
   if (PJ === 0) {
     return (
@@ -242,7 +239,6 @@ function CatStats({ fechas, catKey, torneo }) {
 }
 
 function VistaStats({ fechas, catActiva, setCatActiva, onBack }) {
-  const torneoKey = 'clausura2026'
   const titulo = 'PROXIMAMENTE'
 
   const cats = CATEGORIAS_ACTUALES
@@ -291,9 +287,9 @@ function VistaStats({ fechas, catActiva, setCatActiva, onBack }) {
 
       <div className="px-3 mt-4">
         {catActiva === 'general'
-          ? <GeneralStats fechas={fechas} torneo={torneoKey} />
+          ? <GeneralStats fechas={fechas} />
           : catActiva
-            ? <CatStats fechas={fechas} catKey={catActiva} torneo={torneoKey} />
+            ? <CatStats fechas={fechas} catKey={catActiva} />
             : (
               <div className="flex flex-col items-center justify-center py-16 gap-2">
                 <p className="text-white/25 text-sm">Elegí una categoría para ver las estadísticas</p>
@@ -312,7 +308,7 @@ export default function Plantel({ data }) {
   const [catActiva, setCatActiva] = useState(null)
   const fechas = data?.fechas || {}
 
-  const countFechas = Object.values(fechas).filter(f => (f.torneo || 'apertura2026') === 'clausura2026' && f.resultados).length
+  const countFechas = Object.values(fechas).filter(f => f.resultados).length
 
   if (vista === 'stats') {
     return (
