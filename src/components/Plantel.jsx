@@ -1,31 +1,17 @@
 ﻿import { useState } from 'react'
 
-const CATS_APERTURA = [
-  { key: 'reservaFem',  label: 'Reserva Femenino', short: 'Res. F' },
-  { key: 'reservaMasc', label: 'Reserva Masculino', short: 'Res. M' },
-  { key: '5ta',         label: '5ta División',      short: '5ta' },
-  { key: '4ta',         label: '4ta División',      short: '4ta' },
-  { key: '6ta',         label: '6ta División',      short: '6ta' },
-  { key: 'mas33',       label: 'Seniors +33',       short: '+33' },
-  { key: '3ra',         label: '3ra División',      short: '3ra' },
-  { key: 'mas40',       label: 'Seniors +40',       short: '+40' },
-  { key: '1ra',         label: '1ra División',      short: '1ra' },
+const CATEGORIAS_ACTUALES = [
+  { key: '2011', label: 'Categoría 2011', short: '2011' },
+  { key: '2012', label: 'Categoría 2012', short: '2012' },
+  { key: '2013', label: 'Categoría 2013', short: '2013' },
+  { key: '2014', label: 'Categoría 2014', short: '2014' },
+  { key: '2015', label: 'Categoría 2015', short: '2015' },
+  { key: '2016', label: 'Categoría 2016', short: '2016' },
+  { key: '2017', label: 'Categoría 2017', short: '2017' },
+  { key: '2018', label: 'Categoría 2018', short: '2018' },
+  { key: '2019', label: 'Categoría 2019', short: '2019' },
+  { key: '2020', label: 'Categoría 2020', short: '2020' },
 ]
-
-const CATS_CLAUSURA = [
-  { key: 'reservaFem',  label: 'Reserva Femenino', short: 'Res. F' },
-  { key: 'reservaMasc', label: 'Reserva Masculino', short: 'Res. M' },
-  { key: '5ta',         label: '5ta División',      short: '5ta' },
-  { key: '4ta',         label: '4ta División',      short: '4ta' },
-  { key: '6ta',         label: '6ta División',      short: '6ta' },
-  { key: 'mas33',       label: 'Seniors +33',       short: '+33' },
-  { key: 'fem1ra',      label: '1ra Femenino',      short: '1ra F' },
-  { key: '3ra',         label: '3ra División',      short: '3ra' },
-  { key: 'mas40',       label: 'Seniors +40',       short: '+40' },
-  { key: '1ra',         label: '1ra División',      short: '1ra' },
-]
-
-const getCats = (torneo) => torneo === 'clausura2026' ? CATS_CLAUSURA : CATS_APERTURA
 
 const RES_COLOR = {
   ganado:   { bg: 'bg-green-500',  text: 'text-green-400',  label: 'G' },
@@ -56,7 +42,7 @@ function calcStats(fechas, catKey, torneo) {
 }
 
 function calcGeneralStats(fechas, torneo) {
-  const cats = getCats(torneo)
+  const cats = CATEGORIAS_ACTUALES
   let totalPJ = 0, totalPG = 0, totalPE = 0, totalPP = 0
   const porCat = cats.map(cat => {
     const s = calcStats(fechas, cat.key, torneo)
@@ -255,11 +241,11 @@ function CatStats({ fechas, catKey, torneo }) {
   )
 }
 
-function VistaStats({ vista, fechas, catActiva, setCatActiva, onBack }) {
-  const torneoKey = vista === 'apertura' ? 'apertura2026' : 'clausura2026'
-  const titulo = vista === 'apertura' ? 'Apertura 2026' : 'Clausura 2026'
+function VistaStats({ fechas, catActiva, setCatActiva, onBack }) {
+  const torneoKey = 'clausura2026'
+  const titulo = 'PROXIMAMENTE'
 
-  const cats = getCats(torneoKey)
+  const cats = CATEGORIAS_ACTUALES
 
   return (
     <div className="flex flex-col">
@@ -326,13 +312,11 @@ export default function Plantel({ data }) {
   const [catActiva, setCatActiva] = useState(null)
   const fechas = data?.fechas || {}
 
-  const countFechasPorTorneo = (torneo) =>
-    Object.values(fechas).filter(f => (f.torneo || 'apertura2026') === torneo && f.resultados).length
+  const countFechas = Object.values(fechas).filter(f => (f.torneo || 'apertura2026') === 'clausura2026' && f.resultados).length
 
-  if (vista === 'apertura' || vista === 'clausura') {
+  if (vista === 'stats') {
     return (
       <VistaStats
-        vista={vista}
         fechas={fechas}
         catActiva={catActiva}
         setCatActiva={setCatActiva}
@@ -349,36 +333,19 @@ export default function Plantel({ data }) {
       </div>
 
       <div className="px-3 mt-5 flex flex-col gap-3">
-        <button onClick={() => { setVista('apertura'); setCatActiva(null) }}
+        <button onClick={() => { setVista('stats'); setCatActiva(null) }}
           className="rounded-2xl border border-[#16a34a]/40 p-5 flex items-center justify-between text-left active:opacity-80 transition-opacity"
           style={{ background: 'rgba(22,163,74,0.12)', backdropFilter: 'blur(12px)' }}>
           <div className="flex items-center gap-3">
             <div className="w-1.5 h-6 bg-[#16a34a] rounded-full" />
             <div>
-              <h3 className="text-white font-bold text-base">Apertura 2026</h3>
-              <p className="text-white/40 text-xs mt-0.5">{countFechasPorTorneo('apertura2026')} fechas cargadas</p>
-            </div>
-          </div>
-          <svg className="w-5 h-5 text-white/30 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-
-        <button onClick={() => { setVista('clausura'); setCatActiva(null) }}
-          className="rounded-2xl border border-blue-500/20 p-5 flex items-center justify-between text-left active:opacity-80 transition-opacity"
-          style={{ background: 'rgba(59,130,246,0.06)', backdropFilter: 'blur(12px)' }}>
-          <div className="flex items-center gap-3">
-            <div className="w-1.5 h-6 bg-blue-500/40 rounded-full" />
-            <div>
-              <h3 className="text-white/60 font-bold text-base">Clausura 2026</h3>
-              <p className="text-white/30 text-xs mt-0.5">
-                {countFechasPorTorneo('clausura2026') > 0
-                  ? `${countFechasPorTorneo('clausura2026')} fechas cargadas`
-                  : 'Próximamente'}
+              <h3 className="text-white font-bold text-base">PROXIMAMENTE</h3>
+              <p className="text-white/40 text-xs mt-0.5">
+                {countFechas > 0 ? `${countFechas} fechas cargadas` : 'Sin fechas cargadas todavía'}
               </p>
             </div>
           </div>
-          <svg className="w-5 h-5 text-white/20 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-5 h-5 text-white/30 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>

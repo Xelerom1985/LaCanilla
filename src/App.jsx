@@ -8,6 +8,7 @@ import Tablas from './components/Tablas'
 import Admin from './components/Admin'
 import Plantel from './components/Plantel'
 import Novedades from './components/Novedades'
+import Sedes from './components/Sedes'
 
 const PASS = '1883'
 
@@ -181,6 +182,7 @@ export default function App() {
             {seccion === 'partidos' && <Partidos data={data} />}
             {seccion === 'tablas' && <Tablas data={data} />}
             {seccion === 'plantel' && <Plantel data={data} />}
+            {seccion === 'sedes' && <Sedes />}
             {seccion === 'admin' && authed && <Admin data={data} />}
           </>
         )}
