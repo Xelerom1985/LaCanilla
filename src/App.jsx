@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect } from 'react'
 import { useRegisterSW } from 'virtual:pwa-register/react'
-import { db, ref, onValue, runTransaction } from './firebase'
+import { db, ref, onValue } from './firebase'
 import Navbar from './components/Navbar'
 import Home from './components/Home'
 import Partidos from './components/Partidos'
@@ -114,7 +114,6 @@ export default function App() {
   const navegarSeccion = (s) => {
     if (s !== 'home') window.history.pushState({ section: s }, '')
     if (s === 'novedades') localStorage.setItem('novedadesLastSeen', Date.now())
-    if (s !== 'admin') runTransaction(ref(db, `analytics/secciones/${s}`), v => (v || 0) + 1)
     setSeccion(s)
   }
 

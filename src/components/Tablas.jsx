@@ -1,5 +1,4 @@
 ﻿import { useState, useEffect, useRef, useCallback } from 'react'
-import { db, ref, runTransaction } from '../firebase'
 
 const CATEGORIAS = [
   { key: 'general', label: 'Tabla General' },
@@ -174,7 +173,7 @@ export default function Tablas({ data }) {
           {CATEGORIAS.map(cat => (
             <button
               key={cat.key}
-              onClick={() => { setCatActiva(cat.key); setZoom(null); runTransaction(ref(db, `analytics/tablasCats/${cat.key}`), v => (v || 0) + 1) }}
+              onClick={() => { setCatActiva(cat.key); setZoom(null) }}
               className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-150 text-center${cat.key === 'general' ? ' col-span-2' : ''}`}
               style={{
                 background: catActiva === cat.key ? '#16a34a' : 'rgba(7,26,13,0.75)',

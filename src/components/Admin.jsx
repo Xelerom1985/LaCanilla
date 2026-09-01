@@ -16,6 +16,34 @@ const CATEGORIAS = [
   { key: '2020',    label: 'Categoría 2020' },
 ]
 
+const SEDES = [
+  { nombre: 'Argentino de Brown',       direccion: 'Pasaje La Rioja 189 esq. San Jorge' },
+  { nombre: 'Club El Inca',             direccion: 'Calle 835 y 897' },
+  { nombre: 'Club Gaboto',              direccion: 'Calle 802 e/ 897 y 898' },
+  { nombre: 'Club Los Chaperos',        direccion: 'Calle 855 e/c 890 y 889' },
+  { nombre: 'Complejo San Martín',      direccion: 'Calle 826 e/c 897 y 895' },
+  { nombre: 'Def. U. San Valentín',     direccion: 'Av. Pedemontes (ex Zapiola) y Calle 195' },
+  { nombre: 'Def. de La Florida',       direccion: 'Av. San Martín e/ Calle 878 y 882' },
+  { nombre: 'El Ciclón',                direccion: 'Calle 850 y 882' },
+  { nombre: 'El Sol',                   direccion: 'Calle 860 entre 892 y 892 bis, Barrio El Sol' },
+  { nombre: 'Ferro Prov.',              direccion: 'Av. Donato Álvarez y Calle 848' },
+  { nombre: 'Islas Malvinas',           direccion: 'Calle 850 y 882' },
+  { nombre: 'La Canilla',               direccion: 'Calle 893 bis y 802' },
+  { nombre: 'La Sirena',                direccion: 'Calle Darregueira 999-1099, Fco. Varela' },
+  { nombre: 'Los 4 Vientos',            direccion: 'Calle 883 / 839' },
+  { nombre: 'Nuevo Fortín',             direccion: 'Av. Donato Álvarez / Av. San Martín' },
+  { nombre: 'Nuevo Progreso',           direccion: 'Calle 889 / 802' },
+  { nombre: 'Polideportivo Solano',     direccion: 'Calle 835 e/c 891 y 889' },
+  { nombre: 'San Agustín',              direccion: 'Dardo Rocha e/ La Calandria y Hornero' },
+  { nombre: 'San Baltazar',             direccion: 'Calle Méndez 1730, Wilde' },
+  { nombre: 'San Lorenzo',              direccion: 'Cardenal y España' },
+  { nombre: 'Santa Clara',              direccion: 'Calle Jujuy 3651, Claypole' },
+  { nombre: 'Santa María',              direccion: 'Calle 174 y Formosa, Bernal Oeste' },
+  { nombre: 'Solano Jrs.',              direccion: 'Av. Donato Álvarez y Calle 850' },
+  { nombre: 'Solano Juventud Unida',    direccion: 'Av. San Martín y Calle 888 y 889' },
+  { nombre: 'Unión Vecinal',            direccion: 'Calle 854 e/ 898 y 899' },
+]
+
 const CATS_APERTURA = [
   { key: 'reservaFem',  label: 'Reserva Femenino', short: 'Res. F' },
   { key: 'reservaMasc', label: 'Reserva Masculino', short: 'Res. M' },
@@ -588,7 +616,7 @@ export default function Admin({ data, onSalir }) {
           { id: 'tablas',    label: 'Tablas' },
           { id: 'plantel',   label: 'Plantel' },
           { id: 'novedades', label: 'Novedades' },
-          { id: 'analytics', label: 'Analytics' },
+          { id: 'sedes',     label: 'Sedes' },
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={`flex-1 py-3 text-[10px] font-medium transition-colors ${tab === t.id ? 'text-[#f1e9d8] border-b-2 border-[#16a34a]' : 'text-gray-500'}`}>
@@ -1319,103 +1347,37 @@ export default function Admin({ data, onSalir }) {
         </div>
       )}
 
-      {/* ANALYTICS */}
-      {tab === 'analytics' && (() => {
-        const secciones = data.analytics?.secciones || {}
-        const tablasCats = data.analytics?.tablasCats || {}
+      {/* SEDES */}
+      {tab === 'sedes' && (
+        <div className="px-3 py-4 flex flex-col gap-4">
+          <p className="text-gray-500 text-xs uppercase tracking-widest">Dirección de los clubes · Súper Liga de Solano</p>
 
-        const SECC_LABELS = {
-          home:      'Inicio',
-          novedades: 'Novedades',
-          partidos:  'Partidos',
-          tablas:    'Tab. y Plantel',
-          plantel:   'Estadísticas',
-        }
-        const CAT_LABELS = {
-          general:     'Tabla General',
-          reservaFem:  'Reserva Fem.',
-          reservaMasc: 'Reserva Masc.',
-          '6ta':       '6ta División',
-          '5ta':       '5ta División',
-          '4ta':       '4ta División',
-          '3ra':       '3ra División',
-          '1ra':       '1ra División',
-          mas33:       'Seniors +33',
-          mas40:       'Seniors +40',
-        }
-
-        const seccionesOrdenadas = Object.entries(SECC_LABELS)
-          .map(([key, label]) => ({ key, label, val: secciones[key] || 0 }))
-          .sort((a, b) => b.val - a.val)
-
-        const catsOrdenadas = Object.entries(CAT_LABELS)
-          .map(([key, label]) => ({ key, label, val: tablasCats[key] || 0 }))
-          .filter(c => c.val > 0)
-          .sort((a, b) => b.val - a.val)
-
-        const maxSecc = Math.max(...seccionesOrdenadas.map(s => s.val), 1)
-        const maxCat  = Math.max(...catsOrdenadas.map(c => c.val), 1)
-        const totalVisitas = seccionesOrdenadas.reduce((s, x) => s + x.val, 0)
-
-        return (
-          <div className="px-3 py-4 flex flex-col gap-4">
-            {/* Total */}
-            <div className="bg-[#1e1e1e] rounded-2xl border border-white/5 p-4 flex items-center justify-between">
-              <div>
-                <p className="text-white/40 text-xs uppercase tracking-widest">Total de visitas</p>
-                <p className="text-white font-bold text-3xl mt-1">{totalVisitas.toLocaleString()}</p>
-              </div>
-              <svg className="w-10 h-10 text-[#16a34a]/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3v18h18M7 16V11M11 16V8M15 16V5" />
-              </svg>
-            </div>
-
-            {/* Secciones */}
-            <div className="bg-[#1e1e1e] rounded-2xl border border-white/5 p-4 flex flex-col gap-3">
-              <p className="text-white/40 text-xs uppercase tracking-widest">Visitas por sección</p>
-              <div className="flex flex-col gap-2.5">
-                {seccionesOrdenadas.map(({ key, label, val }) => (
-                  <div key={key} className="flex flex-col gap-1">
-                    <div className="flex justify-between items-center">
-                      <span className="text-white/70 text-xs">{label}</span>
-                      <span className="text-white/50 text-xs font-bold tabular-nums">{val.toLocaleString()}</span>
-                    </div>
-                    <div className="w-full h-2 rounded-full bg-white/8 overflow-hidden">
-                      <div className="h-full rounded-full transition-all duration-700"
-                        style={{ width: `${Math.round((val / maxSecc) * 100)}%`, background: '#16a34a' }} />
-                    </div>
+          <div className="bg-[#1e1e1e] rounded-2xl border border-white/5 overflow-hidden">
+            <div className="divide-y divide-white/5">
+              {SEDES.map(({ nombre, direccion }) => (
+                <a
+                  key={nombre}
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${direccion}, Solano, Buenos Aires`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 px-4 py-3 active:bg-white/5 transition-colors"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-semibold ${nombre === 'La Canilla' ? 'text-[#16a34a]' : 'text-white/85'}`}>{nombre}</p>
+                    <p className="text-white/35 text-xs mt-0.5">{direccion}</p>
                   </div>
-                ))}
-              </div>
+                  <svg className="w-4 h-4 text-white/25 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </a>
+              ))}
             </div>
-
-            {/* Categorías de Tablas */}
-            <div className="bg-[#1e1e1e] rounded-2xl border border-white/5 p-4 flex flex-col gap-3">
-              <p className="text-white/40 text-xs uppercase tracking-widest">Categorías más vistas en Tablas</p>
-              {catsOrdenadas.length === 0 ? (
-                <p className="text-white/20 text-sm text-center py-4">Sin datos todavía</p>
-              ) : (
-                <div className="flex flex-col gap-2.5">
-                  {catsOrdenadas.map(({ key, label, val }) => (
-                    <div key={key} className="flex flex-col gap-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-white/70 text-xs">{label}</span>
-                        <span className="text-white/50 text-xs font-bold tabular-nums">{val.toLocaleString()}</span>
-                      </div>
-                      <div className="w-full h-2 rounded-full bg-white/8 overflow-hidden">
-                        <div className="h-full rounded-full transition-all duration-700"
-                          style={{ width: `${Math.round((val / maxCat) * 100)}%`, background: 'rgba(22,163,74,0.7)' }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <p className="text-white/15 text-[10px] text-center">Los contadores se actualizan en tiempo real · Datos anónimos</p>
           </div>
-        )
-      })()}
+
+          <p className="text-white/15 text-[10px] text-center">Tocá un club para abrir la dirección en Google Maps</p>
+        </div>
+      )}
 
       <div className="h-6" />
     </div>
