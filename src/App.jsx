@@ -182,7 +182,7 @@ export default function App() {
       {!loading && (
         <button
           onClick={handleLockClick}
-          className={`fixed top-3 right-3 z-40 w-11 h-11 flex items-center justify-center transition-colors ${authed ? 'text-white/60 active:text-white/90' : 'text-white/35 active:text-white/60'}`}
+          className={`fixed top-3 left-1/2 -translate-x-1/2 z-40 w-11 h-11 flex items-center justify-center transition-colors ${authed ? 'text-white/60 active:text-white/90' : 'text-white/35 active:text-white/60'}`}
         >
           {authed ? (
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
